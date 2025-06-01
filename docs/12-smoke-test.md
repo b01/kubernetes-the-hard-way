@@ -1,5 +1,16 @@
 # Smoke Test
 
+## Add kubectl Alias
+
+So you can just type `k` in place of `kubectl` for running Kubernetes commands.
+
+Run `k` on the command like to make sure it is not already in use. You should
+get an error that it is an unknown command. Then run:
+
+```shell
+echo "alias k=kubectl" | tee -a ~/.bashrc && source ~/.bashrc
+```
+
 In this lab you will complete a series of tasks to ensure your Kubernetes cluster is functioning correctly.
 
 ## Data Encryption
