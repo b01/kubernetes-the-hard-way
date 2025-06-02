@@ -1,23 +1,25 @@
 # Bootstrapping the etcd Cluster
 
-Kubernetes components are stateless and store cluster state in [etcd](https://github.com/etcd-io/etcd). In this lab you will bootstrap a single node etcd cluster.
+Kubernetes components are stateless and store cluster state in [etcd]. In this
+lab you will bootstrap a single node etcd cluster.
 
 ## Prerequisites
 
-Copy `etcd` binaries and systemd unit files to the `server` machine:
+Copy `etcd` binaries and systemd unit files to the `controlplane` machine:
 
 ```bash
 scp \
   downloads/controller/etcd \
   downloads/client/etcdctl \
   units/etcd.service \
-  root@server:~/
+  root@controlplane:~/
 ```
 
-The commands in this lab must be run on the `server` machine. Login to the `server` machine using the `ssh` command. Example:
+The commands in this lab must be run on the `controlplane` machine. Login to
+the `controlplane` machine using the `ssh` command. Example:
 
 ```bash
-ssh root@server
+ssh root@controlplane
 ```
 
 ## Bootstrapping an etcd Cluster
@@ -38,12 +40,13 @@ Extract and install the `etcd` server and the `etcdctl` command line utility:
 {
   mkdir -p /etc/etcd /var/lib/etcd
   chmod 700 /var/lib/etcd
-  cp ca.crt kube-api-server.key kube-api-server.crt \
+  cp ca.crt kube-apiserver.key kube-apiserver.crt \
     /etc/etcd/
 }
 ```
 
-Each etcd member must have a unique name within an etcd cluster. Set the etcd name to match the hostname of the current compute instance:
+Each etcd member must have a unique name within an etcd cluster. Set the etcd
+name to match the hostname of the current compute instance:
 
 Create the `etcd.service` systemd unit file:
 
@@ -74,3 +77,7 @@ etcdctl member list
 ```
 
 Next: [Bootstrapping the Kubernetes Control Plane](08-bootstrapping-kubernetes-controllers.md)
+
+---
+
+[etcd]: https://github.com/etcd-io/etcd

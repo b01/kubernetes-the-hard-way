@@ -90,7 +90,7 @@ Copy the appropriate certificates and private keys to the `node01` and `node02` 
 
 ```bash
 for host in node01 node02; do
-  ssh root@${host} mkdir /var/lib/kubelet/
+  ssh root@${host} mkdir -p /var/lib/kubelet/
 
   scp ca.crt root@${host}:/var/lib/kubelet/
 
@@ -107,9 +107,9 @@ Copy the appropriate certificates and private keys to the `controlplane` machine
 ```bash
 scp \
   ca.key ca.crt \
-  kube-api-controlplane.key kube-api-controlplane.crt \
+  kube-apiserver.key kube-apiserver.crt \
   service-accounts.key service-accounts.crt \
-  root@server:~/
+  root@controlplane:~/
 ```
 
 > The `kube-proxy`, `kube-controller-manager`, `kube-scheduler`, and `kubelet` client certificates will be used to generate client authentication configuration files in the next lab.
