@@ -142,7 +142,7 @@ kubectl version --client
 ```
 
 ```text
-Client Version: v1.32.3
+Client Version: v1.33.1
 Kustomize Version: v5.5.0
 ```
 
