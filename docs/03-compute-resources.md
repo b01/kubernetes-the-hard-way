@@ -1,46 +1,107 @@
 # Provisioning Compute Resources
 
-Kubernetes requires a set of machines to host the Kubernetes control plane and the worker nodes where containers are ultimately run. In this lab you will provision the machines required for setting up a Kubernetes cluster.
+Kubernetes requires a set of machines to host the Kubernetes control plane and
+the worker nodes where containers are ultimately run. In this lab you will
+provision the machines required for setting up a Kubernetes cluster.
 
 ## Machine Database
 
-This tutorial will leverage a text file, which will serve as a machine database, to store the various machine attributes that will be used when setting up the Kubernetes control plane and worker nodes. The following schema represents entries in the machine database, one entry per line:
+This tutorial will leverage a text file, which will serve as a machine database,
+to store the various machine attributes that will be used when setting up the
+Kubernetes control plane and worker nodes. The following schema represents
+entries in the machine database, one entry per line:
 
 ```text
 IPV4_ADDRESS FQDN HOSTNAME POD_SUBNET
 ```
 
-Each of the columns corresponds to a machine IP address `IPV4_ADDRESS`, fully qualified domain name `FQDN`, host name `HOSTNAME`, and the IP subnet `POD_SUBNET`. Kubernetes assigns one IP address per `pod` and the `POD_SUBNET` represents the unique IP address range assigned to each machine in the cluster for doing so.
+Each of the columns corresponds to a machine IP address `IPV4_ADDRESS`, fully
+qualified domain name `FQDN`, host name `HOSTNAME`, and the IP subnet
+`POD_SUBNET`. Kubernetes assigns one IP address per `pod` and the `POD_SUBNET`
+represents the unique IP address range assigned to each machine in the cluster
+for doing so.
 
-Here is an example machine database similar to the one used when creating this tutorial. Notice the IP addresses have been masked out. Your machines can be assigned any IP address as long as each machine is reachable from each other and the `jumpbox`.
+Here is an example machine database similar to the one used when creating this
+tutorial. Notice the IP addresses have been masked out. Your machines can be
+assigned any IP address as long as each machine is reachable from each other
+and the `jumpbox`.
 
 ```bash
 cat machines.txt
 ```
 
 ```text
-XXX.XXX.XXX.XXX server.kubernetes.local server
-XXX.XXX.XXX.XXX node-0.kubernetes.local node-0 10.200.0.0/24
-XXX.XXX.XXX.XXX node-1.kubernetes.local node-1 10.200.1.0/24
+XXX.XXX.XXX.XXX controlplane.kubernetes.local controlplane
+XXX.XXX.XXX.XXX node01.kubernetes.local node01 10.200.0.0/24
+XXX.XXX.XXX.XXX node02.kubernetes.local node02 10.200.1.0/24
 ```
 
-Now it's your turn to create a `machines.txt` file with the details for the three machines you will be using to create your Kubernetes cluster. Use the example machine database from above and add the details for your machines.
+Now it's your turn to create a `machines.txt` file with the details for the
+three machines you will be using to create your Kubernetes cluster. Use the
+example machine database from above and add the details for your machines.
+
+## Enable root Login
+
+Initially the root account will be locked on all machines. You will need to
+manually unlock the root account on each virtual machine.
+
+You'll need to repeat these steps on each machine.
+
+Login to the machine with the `vagrant` user:
+
+`vagrant ssh@jumpbox`
+
+Now set a password for the root account:
+
+```shell
+sudo passwd root
+```
+
+NOTE: You can choose password **vagrant** to keep it the same as the vagrant
+user, and there will be only 1 password to remember.
+
+You'll need to unlock the password of the named account. This option re-enables
+a password by changing the password back to its previous value. In this case
+it should be set to the password we just assigned.
+
+```shell
+sudo passwd -u root
+```
+
+Test that it works by running and entering the password you set:
+
+```shell
+su
+```
 
 ## Configuring SSH Access
 
-SSH will be used to configure the machines in the cluster. Verify that you have `root` SSH access to each machine listed in your machine database. You may need to enable root SSH access on each node by updating the sshd_config file and restarting the SSH server.
+SSH will be used to configure the machines in the cluster. Verify that you have
+`root` SSH access to each machine listed in your machine database. You may need
+to enable root SSH access on each node by updating the sshd_config file and
+restarting the SSH server.
 
 ### Enable root SSH Access
 
-If `root` SSH access is enabled for each of your machines you can skip this section.
+If `root` SSH access is enabled for each of your machines you can skip this
+section.
 
-By default, a new `debian` install disables SSH access for the `root` user. This is done for security reasons as the `root` user has total administrative control of unix-like systems. If a weak password is used on a machine connected to the internet, well, let's just say it's only a matter of time before your machine belongs to someone else. As mentioned earlier, we are going to enable `root` access over SSH in order to streamline the steps in this tutorial. Security is a tradeoff, and in this case, we are optimizing for convenience. Log on to each machine via SSH using your user account, then switch to the `root` user using the `su` command:
+By default, a new install may disable SSH access for the `root` user. This is
+done for security reasons as the `root` user has total administrative control
+of unix-like systems. If a weak password is used on a machine connected to the
+internet, well, let's just say it's only a matter of time before your machine
+belongs to someone else. As mentioned earlier, we are going to enable `root`
+access over SSH in order to streamline the steps in this tutorial. Security is
+a tradeoff, and in this case, we are optimizing for convenience. Log on to each
+machine via SSH using your user account, then switch to the `root` user using
+the `su` command:
 
 ```bash
 su - root
 ```
 
-Edit the `/etc/ssh/sshd_config` SSH daemon configuration file and set the `PermitRootLogin` option to `yes`:
+Edit the `/etc/ssh/sshd_config` SSH daemon configuration file and set the
+`PermitRootLogin` option to `yes`:
 
 ```bash
 sed -i \
@@ -56,7 +117,10 @@ systemctl restart sshd
 
 ### Generate and Distribute SSH Keys
 
-In this section you will generate and distribute an SSH keypair to the `server`, `node-0`, and `node-1`, machines, which will be used to run commands on those machines throughout this tutorial. Run the following commands from the `jumpbox` machine.
+In this section you will generate and distribute an SSH keypair to the
+`controlplane`, `node01`, and `node02` machines, which will be used to run
+commands on those machines throughout this tutorial. Run the following commands
+from the `jumpbox` machine.
 
 Generate a new SSH key:
 
@@ -90,16 +154,23 @@ done < machines.txt
 ```
 
 ```text
-server
-node-0
-node-1
+controlplane
+node01
+node02
 ```
 
 ## Hostnames
 
-In this section you will assign hostnames to the `server`, `node-0`, and `node-1` machines. The hostname will be used when executing commands from the `jumpbox` to each machine. The hostname also plays a major role within the cluster. Instead of Kubernetes clients using an IP address to issue commands to the Kubernetes API server, those clients will use the `server` hostname instead. Hostnames are also used by each worker machine, `node-0` and `node-1` when registering with a given Kubernetes cluster.
+In this section you will assign hostnames to the `controlplane`, `node01`,
+and `node02` machines. The hostname will be used when executing commands from
+the `jumpbox` to each machine. The hostname also plays a major role within the
+cluster. Instead of Kubernetes clients using an IP address to issue commands to
+the Kubernetes API server, those clients will use the `controlplane` hostname
+instead. Hostnames are also used by each worker machine, `node01` and `node02`
+when registering with a given Kubernetes cluster.
 
-To configure the hostname for each machine, run the following commands on the `jumpbox`.
+To configure the hostname for each machine, run the following commands on the
+`jumpbox`.
 
 Set the hostname on each machine listed in the `machines.txt` file:
 
@@ -121,14 +192,14 @@ done < machines.txt
 ```
 
 ```text
-server.kubernetes.local
-node-0.kubernetes.local
-node-1.kubernetes.local
+controlplane.kubernetes.local
+node01.kubernetes.local
+node02.kubernetes.local
 ```
 
 ## Host Lookup Table
 
-In this section you will generate a `hosts` file which will be appended to `/etc/hosts` file on the `jumpbox` and to the `/etc/hosts` files on all three cluster members used for this tutorial. This will allow each machine to be reachable using a hostname such as `server`, `node-0`, or `node-1`.
+In this section you will generate a `hosts` file which will be appended to `/etc/hosts` file on the `jumpbox` and to the `/etc/hosts` files on all three cluster members used for this tutorial. This will allow each machine to be reachable using a hostname such as `controlplane`, `node01`, or `node02`.
 
 Create a new `hosts` file and add a header to identify the machines being added:
 
@@ -137,7 +208,8 @@ echo "" > hosts
 echo "# Kubernetes The Hard Way" >> hosts
 ```
 
-Generate a host entry for each machine in the `machines.txt` file and append it to the `hosts` file:
+Generate a host entry for each machine in the `machines.txt` file and append it
+to the `hosts` file:
 
 ```bash
 while read IP FQDN HOST SUBNET; do
@@ -155,14 +227,15 @@ cat hosts
 ```text
 
 # Kubernetes The Hard Way
-XXX.XXX.XXX.XXX server.kubernetes.local server
-XXX.XXX.XXX.XXX node-0.kubernetes.local node-0
-XXX.XXX.XXX.XXX node-1.kubernetes.local node-1
+XXX.XXX.XXX.XXX controlplane.kubernetes.local server
+XXX.XXX.XXX.XXX node01.kubernetes.local node01
+XXX.XXX.XXX.XXX node02.kubernetes.local node02
 ```
 
 ## Adding `/etc/hosts` Entries To A Local Machine
 
-In this section you will append the DNS entries from the `hosts` file to the local `/etc/hosts` file on your `jumpbox` machine.
+In this section you will append the DNS entries from the `hosts` file to the
+local `/etc/hosts` file on your `jumpbox` machine.
 
 Append the DNS entries from `hosts` to `/etc/hosts`:
 
@@ -186,28 +259,30 @@ ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 
 # Kubernetes The Hard Way
-XXX.XXX.XXX.XXX server.kubernetes.local server
-XXX.XXX.XXX.XXX node-0.kubernetes.local node-0
-XXX.XXX.XXX.XXX node-1.kubernetes.local node-1
+XXX.XXX.XXX.XXX controlplane.kubernetes.local server
+XXX.XXX.XXX.XXX node01.kubernetes.local node01
+XXX.XXX.XXX.XXX node02.kubernetes.local node02
 ```
 
-At this point you should be able to SSH to each machine listed in the `machines.txt` file using a hostname.
+At this point you should be able to SSH to each machine listed in the
+`machines.txt` file using a hostname.
 
 ```bash
-for host in server node-0 node-1
+for host in controlplane node01 node02
    do ssh root@${host} hostname
 done
 ```
 
 ```text
-server
-node-0
-node-1
+controlplane
+node01
+node02
 ```
 
 ## Adding `/etc/hosts` Entries To The Remote Machines
 
-In this section you will append the host entries from `hosts` to `/etc/hosts` on each machine listed in the `machines.txt` text file.
+In this section you will append the host entries from `hosts` to `/etc/hosts`
+on each machine listed in the `machines.txt` text file.
 
 Copy the `hosts` file to each machine and append the contents to `/etc/hosts`:
 
@@ -219,6 +294,9 @@ while read IP FQDN HOST SUBNET; do
 done < machines.txt
 ```
 
-At this point, hostnames can be used when connecting to machines from your `jumpbox` machine, or any of the three machines in the Kubernetes cluster. Instead of using IP addresses you can now connect to machines using a hostname such as `server`, `node-0`, or `node-1`.
+At this point, hostnames can be used when connecting to machines from your
+`jumpbox` machine, or any of the three machines in the Kubernetes cluster.
+Instead of using IP addresses you can now connect to machines using a hostname
+such as `controlplane`, `node01`, or `node02`.
 
 Next: [Provisioning a CA and Generating TLS Certificates](04-certificate-authority.md)
