@@ -5,7 +5,7 @@ Documentation=https://github.com/etcd-io/etcd
 [Service]
 Type=notify
 ExecStart=/usr/local/bin/etcd \
-  --name controller \
+  --name controlplane \
   --initial-advertise-peer-urls http://127.0.0.1:2380 \
   --listen-peer-urls http://127.0.0.1:2380 \
   --listen-client-urls http://127.0.0.1:2379 \

@@ -1,16 +1,23 @@
 # Generating Kubernetes Configuration Files for Authentication
 
-In this lab you will generate [Kubernetes client configuration files](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/), typically called kubeconfigs, which configure Kubernetes clients to connect and authenticate to Kubernetes API Servers.
+In this lab you will generate [Kubernetes client configuration files](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/),
+typically called kubeconfigs, which configure Kubernetes clients to connect
+and authenticate to Kubernetes API Servers.
 
 ## Client Authentication Configs
 
-In this section you will generate kubeconfig files for the `kubelet` and the `admin` user.
+In this section you will generate kubeconfig files for the `kubelet` and the
+`admin` user.
 
 ### The kubelet Kubernetes Configuration File
 
-When generating kubeconfig files for Kubelets the client certificate matching the Kubelet's node name must be used. This will ensure Kubelets are properly authorized by the Kubernetes [Node Authorizer](https://kubernetes.io/docs/reference/access-authn-authz/node/).
+When generating kubeconfig files for Kubelets the client certificate matching
+the Kubelet's node name must be used. This will ensure Kubelets are properly
+authorized by the Kubernetes [Node Authorizer](https://kubernetes.io/docs/reference/access-authn-authz/node/).
 
-> The following commands must be run in the same directory used to generate the SSL certificates during the [Generating TLS Certificates](04-certificate-authority.md) lab.
+> The following commands must be run in the same directory used to generate
+> the SSL certificates during the
+> [Generating TLS Certificates](04-certificate-authority.md) lab.
 
 Generate a kubeconfig file for the `node01` and `node02` worker nodes:
 
@@ -191,20 +198,20 @@ for host in node01 node02; do
   ssh root@${host} "mkdir -p /var/lib/{kube-proxy,kubelet}"
 
   scp kube-proxy.kubeconfig \
-    root@${host}:/var/lib/kube-proxy/kubeconfig \
+    root@${host}:/var/lib/kube-proxy/kubeconfig
 
   scp ${host}.kubeconfig \
     root@${host}:/var/lib/kubelet/kubeconfig
 done
 ```
 
-Copy the `kube-controller-manager` and `kube-scheduler` kubeconfig files to the `server` machine:
+Copy the `kube-controller-manager` and `kube-scheduler` kubeconfig files to the `controlplane` machine:
 
 ```bash
 scp admin.kubeconfig \
   kube-controller-manager.kubeconfig \
   kube-scheduler.kubeconfig \
-  root@server:~/
+  root@controlplane:~/
 ```
 
 Next: [Generating the Data Encryption Config and Key](06-data-encryption-keys.md)

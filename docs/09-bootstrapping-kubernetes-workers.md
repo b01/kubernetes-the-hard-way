@@ -1,6 +1,8 @@
 # Bootstrapping the Kubernetes Worker Nodes
 
-In this lab you will bootstrap two Kubernetes worker nodes. The following components will be installed: [runc](https://github.com/opencontainers/runc), [container networking plugins](https://github.com/containernetworking/cni), [containerd](https://github.com/containerd/containerd), [kubelet](https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet), and [kube-proxy](https://kubernetes.io/docs/concepts/cluster-administration/proxies).
+In this lab you will bootstrap two Kubernetes worker nodes. The following
+components will be installed: [runc], [container networking plugins],
+[containerd], [kubelet], and [kube-proxy].
 
 ## Prerequisites
 
@@ -39,13 +41,14 @@ done
 
 ```bash
 for HOST in node01 node02; do
-  scp \
-    downloads/cni-plugins/* \
+  scp -r \
+    downloads/cni-plugins/ \
     root@${HOST}:~/cni-plugins/
 done
 ```
 
-The commands in the next section must be run on each worker instance: `node01`, `node02`. Login to the worker instance using the `ssh` command. Example:
+The commands in the next section must be run on each worker instance: `node01`,
+`node02`. Login to the worker instance using the `ssh` command. Example:
 
 ```bash
 ssh root@node01
@@ -66,7 +69,9 @@ Install the OS dependencies:
 
 Disable Swap
 
-Kubernetes has limited support for the use of swap memory, as it is difficult to provide guarantees and account for pod memory utilization when swap is involved.
+Kubernetes has limited support for the use of swap memory, as it is difficult
+to provide guarantees and account for pod memory utilization when swap is
+involved.
 
 Verify if swap is disabled:
 
@@ -74,13 +79,15 @@ Verify if swap is disabled:
 swapon --show
 ```
 
-If output is empty then swap is disabled. If swap is enabled run the following command to disable swap immediately:
+If output is empty then swap is disabled. If swap is enabled run the following
+command to disable swap immediately:
 
 ```bash
 swapoff -a
 ```
 
-> To ensure swap remains off after reboot consult your Linux distro documentation.
+> To ensure swap remains off after reboot consult your Linux distro
+> documentation.
 
 Create the installation directories:
 
@@ -98,9 +105,9 @@ Install the worker binaries:
 
 ```bash
 {
-  mv crictl kube-proxy kubelet runc \
-    /usr/local/bin/
-  mv containerd containerd-shim-runc-v2 containerd-stress /bin/
+  mv crictl kube-proxy kubelet /usr/local/bin/
+  mv runc /usr/local/sbin/
+  mv containerd ctr containerd-shim-runc-v2 containerd-stress /bin/
   mv cni-plugins/* /opt/cni/bin/
 }
 ```
@@ -113,7 +120,8 @@ Create the `bridge` network configuration file:
 mv 10-bridge.conf 99-loopback.conf /etc/cni/net.d/
 ```
 
-To ensure network traffic crossing the CNI `bridge` network is processed by `iptables`, load and configure the `br-netfilter` kernel module:
+To ensure network traffic crossing the CNI `bridge` network is processed by
+`iptables`, load and configure the `br-netfilter` kernel module:
 
 ```bash
 {
@@ -193,7 +201,7 @@ Run the following commands from the `jumpbox` machine.
 List the registered Kubernetes nodes:
 
 ```bash
-ssh root@server \
+ssh root@controlplane \
   "kubectl get nodes \
   --kubeconfig admin.kubeconfig"
 ```
@@ -205,3 +213,11 @@ node02   Ready    <none>   10s    v1.32.3
 ```
 
 Next: [Configuring kubectl for Remote Access](10-configuring-kubectl.md)
+
+---
+
+[runc]: https://github.com/opencontainers/runc
+[container networking plugins]: https://github.com/containernetworking/cni
+[containerd]: https://github.com/containerd/containerd
+[kubelet]: https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet
+[kube-proxy]: https://kubernetes.io/docs/concepts/cluster-administration/proxies

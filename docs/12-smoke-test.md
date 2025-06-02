@@ -8,14 +8,15 @@ Run `k` on the command like to make sure it is not already in use. You should
 get an error that it is an unknown command. Then run:
 
 ```shell
-echo "alias k=kubectl" | tee -a ~/.bashrc && source ~/.bashrc
+echo "alias k='kubectl'" | tee -a ~/.bashrc && source ~/.bashrc
 ```
 
-In this lab you will complete a series of tasks to ensure your Kubernetes cluster is functioning correctly.
+In this lab you will complete a series of tasks to ensure your Kubernetes
+cluster is functioning correctly.
 
 ## Data Encryption
 
-In this section you will verify the ability to [encrypt secret data at rest](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#verifying-that-data-is-encrypted).
+In this section you will verify the ability to [encrypt secret data at rest].
 
 Create a generic secret:
 
@@ -27,7 +28,7 @@ kubectl create secret generic kubernetes-the-hard-way \
 Print a hexdump of the `kubernetes-the-hard-way` secret stored in etcd:
 
 ```bash
-ssh root@server \
+ssh root@controlplane \
     'etcdctl get /registry/secrets/default/kubernetes-the-hard-way | hexdump -C'
 ```
 
@@ -57,13 +58,15 @@ ssh root@server \
 0000015a
 ```
 
-The etcd key should be prefixed with `k8s:enc:aescbc:v1:key1`, which indicates the `aescbc` provider was used to encrypt the data with the `key1` encryption key.
+The etcd key should be prefixed with `k8s:enc:aescbc:v1:key1`, which indicates
+the `aescbc` provider was used to encrypt the data with the `key1` encryption
+key.
 
 ## Deployments
 
-In this section you will verify the ability to create and manage [Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/).
+In this section you will verify the ability to create and manage [Deployments].
 
-Create a deployment for the [nginx](https://nginx.org/en/) web server:
+Create a deployment for the [nginx] web server:
 
 ```bash
 kubectl create deployment nginx \
@@ -132,7 +135,7 @@ Handling connection for 8080
 
 ### Logs
 
-In this section you will verify the ability to [retrieve container logs](https://kubernetes.io/docs/concepts/cluster-administration/logging/).
+In this section you will verify the ability to [retrieve container logs].
 
 Print the `nginx` pod logs:
 
@@ -147,9 +150,11 @@ kubectl logs $POD_NAME
 
 ### Exec
 
-In this section you will verify the ability to [execute commands in a container](https://kubernetes.io/docs/tasks/debug-application-cluster/get-shell-running-container/#running-individual-commands-in-a-container).
+In this section you will verify the ability to
+[execute commands in a container].
 
-Print the nginx version by executing the `nginx -v` command in the `nginx` container:
+Print the nginx version by executing the `nginx -v` command in the `nginx`
+container:
 
 ```bash
 kubectl exec -ti $POD_NAME -- nginx -v
@@ -161,16 +166,19 @@ nginx version: nginx/1.27.4
 
 ## Services
 
-In this section you will verify the ability to expose applications using a [Service](https://kubernetes.io/docs/concepts/services-networking/service/).
+In this section you will verify the ability to expose applications using a
+[Service].
 
-Expose the `nginx` deployment using a [NodePort](https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport) service:
+Expose the `nginx` deployment using a [NodePort] service:
 
 ```bash
 kubectl expose deployment nginx \
   --port 80 --type NodePort
 ```
 
-> The LoadBalancer service type can not be used because your cluster is not configured with [cloud provider integration](https://kubernetes.io/docs/getting-started-guides/scratch/#cloud-provider). Setting up cloud provider integration is out of scope for this tutorial.
+> The LoadBalancer service type can not be used because your cluster is not
+> configured with [cloud provider integration]. Setting up cloud provider
+> integration is out of scope for this tutorial.
 
 Retrieve the node port assigned to the `nginx` service:
 
@@ -205,3 +213,14 @@ Accept-Ranges: bytes
 ```
 
 Next: [Cleaning Up](13-cleanup.md)
+
+---
+
+[encrypt secret data at rest]: https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#verifying-that-data-is-encrypted
+[Deployments]: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+[nginx]: https://nginx.org/en/
+[retrieve container logs]: https://kubernetes.io/docs/concepts/cluster-administration/logging/
+[execute commands in a container]: https://kubernetes.io/docs/tasks/debug-application-cluster/get-shell-running-container/#running-individual-commands-in-a-container
+[Service]: https://kubernetes.io/docs/concepts/services-networking/service/
+[NodePort]: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+[cloud provider integration]: https://kubernetes.io/docs/getting-started-guides/scratch/#cloud-provider

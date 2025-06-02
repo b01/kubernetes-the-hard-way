@@ -1,8 +1,17 @@
 # Set Up The Jumpbox
 
-In this lab you will set up one of the four machines to be a `jumpbox`. This machine will be used to run commands throughout this tutorial. While a dedicated machine is being used to ensure consistency, these commands can also be run from just about any machine including your personal workstation running macOS or Linux.
+In this lab you will set up one of the four machines to be a `jumpbox`. This
+machine will be used to run commands throughout this tutorial. While a dedicated
+machine is being used to ensure consistency, these commands can also be run from
+just about any machine including your personal workstation running macOS or
+Linux.
 
-Think of the `jumpbox` as the administration machine that you will use as a home base when setting up your Kubernetes cluster from the ground up. Before we get started we need to install a few command line utilities and clone the Kubernetes The Hard Way git repository, which contains some additional configuration files that will be used to configure various Kubernetes components throughout this tutorial.
+Think of the `jumpbox` as the administration machine that you will use as a
+home base when setting up your Kubernetes cluster from the ground up. Before
+we get started we need to install a few command line utilities and clone the
+Kubernetes The Hard Way git repository, which contains some additional
+configuration files that will be used to configure various Kubernetes
+components throughout this tutorial.
 
 Log in to the `jumpbox`:
 
@@ -10,7 +19,9 @@ Log in to the `jumpbox`:
 ssh root@jumpbox
 ```
 
-All commands will be run as the `root` user. This is being done for the sake of convenience, and will help reduce the number of commands required to set everything up.
+All commands will be run as the `root` user. This is being done for the sake
+of convenience, and will help reduce the number of commands required to set
+everything up.
 
 ### Install Command Line Utilities
 
