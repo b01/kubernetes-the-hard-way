@@ -54,7 +54,7 @@ certs=(
   "admin" "node01" "node02"
   "kube-proxy" "kube-scheduler"
   "kube-controller-manager"
-  "kube-api-server"
+  "kube-apiserver"
   "service-accounts"
 )
 ```
