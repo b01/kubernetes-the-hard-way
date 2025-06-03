@@ -28,7 +28,7 @@ Copy the `encryption-config.yaml` encryption config file to each controller
 instance:
 
 ```bash
-scp encryption-config.yaml root@controlplane:~/
+scp encryption-config.yaml vagrant@controlplane:~/
 ```
 
 Next: [Bootstrapping the etcd Cluster](07-bootstrapping-etcd.md)

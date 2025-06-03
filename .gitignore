@@ -1,4 +1,9 @@
-admin-csr.json             
+# Directories
+# -----------
+.idea/
+.vagrant/
+
+admin-csr.json
 admin-key.pem              
 admin.csr                  
 admin.pem                  
@@ -48,4 +53,3 @@ service-account.csr
 service-account.pem
 service-account-csr.json
 *.swp
-.idea/

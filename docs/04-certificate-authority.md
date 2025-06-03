@@ -21,9 +21,14 @@ Take a moment to review the `ca.conf` configuration file:
 cat ca.conf
 ```
 
-You don't need to understand everything in the `ca.conf` file to complete this tutorial, but you should consider it a starting point for learning `openssl` and the configuration that goes into managing certificates at a high level.
+You don't need to understand everything in the `ca.conf` file to complete this
+tutorial, but you should consider it a starting point for learning `openssl`
+and the configuration that goes into managing certificates at a high level.
 
-Every certificate authority starts with a private key and root certificate. In this section we are going to create a self-signed certificate authority, and while that's all we need for this tutorial, this shouldn't be considered something you would do in a real-world production environment.
+Every certificate authority starts with a private key and root certificate. In
+this section we are going to create a self-signed certificate authority, and
+while that's all we need for this tutorial, this shouldn't be considered
+something you would do in a real-world production environment.
 
 Generate the CA configuration file, certificate, and private key:
 
@@ -45,7 +50,8 @@ ca.crt ca.key
 
 ## Create Client and Server Certificates
 
-In this section you will generate client and server certificates for each Kubernetes component and a client certificate for the Kubernetes `admin` user.
+In this section you will generate client and server certificates for each
+Kubernetes component and a client certificate for the Kubernetes `admin` user.
 
 Generate the certificates and private keys:
 
@@ -76,7 +82,9 @@ for i in ${certs[*]}; do
 done
 ```
 
-The results of running the above command will generate a private key, certificate request, and signed SSL certificate for each of the Kubernetes components. You can list the generated files with the following command:
+The results of running the above command will generate a private key,
+certificate request, and signed SSL certificate for each of the Kubernetes
+components. You can list the generated files with the following command:
 
 ```bash
 ls -1 *.crt *.key *.csr
@@ -84,21 +92,27 @@ ls -1 *.crt *.key *.csr
 
 ## Distribute the Client and Server Certificates
 
-In this section you will copy the various certificates to every machine at a path where each Kubernetes component will search for its certificate pair. In a real-world environment these certificates should be treated like a set of sensitive secrets as they are used as credentials by the Kubernetes components to authenticate to each other.
+In this section you will copy the various certificates to every machine at a
+path where each Kubernetes component will search for its certificate pair. In
+a real-world environment these certificates should be treated like a set of
+sensitive secrets as they are used as credentials by the Kubernetes components
+to authenticate to each other.
 
-Copy the appropriate certificates and private keys to the `node01` and `node02` machines:
+Copy the appropriate certificates and private keys to the `node01` and `node02`
+machines:
 
 ```bash
 for host in node01 node02; do
-  ssh root@${host} mkdir -p /var/lib/kubelet/
+  ssh vagrant@${host} sudo mkdir -p /var/lib/kubelet/
 
-  scp ca.crt root@${host}:/var/lib/kubelet/
+  scp ca.crt vagrant@${host}:~/
+  ssh -n vagrant@${host} "sudo mv ca.crt /var/lib/kubelet/ca.crt"
 
-  scp ${host}.crt \
-    root@${host}:/var/lib/kubelet/kubelet.crt
+  scp ${host}.crt vagrant@${host}:~/
+  ssh -n vagrant@${host} "sudo mv ${host}.crt /var/lib/kubelet/kubelet.crt"
 
-  scp ${host}.key \
-    root@${host}:/var/lib/kubelet/kubelet.key
+  scp ${host}.key vagrant@${host}:~/
+  ssh -n vagrant@${host} "sudo mv ${host}.key /var/lib/kubelet/kubelet.key"
 done
 ```
 
@@ -109,9 +123,11 @@ scp \
   ca.key ca.crt \
   kube-apiserver.key kube-apiserver.crt \
   service-accounts.key service-accounts.crt \
-  root@controlplane:~/
+  vagrant@controlplane:~/
 ```
 
-> The `kube-proxy`, `kube-controller-manager`, `kube-scheduler`, and `kubelet` client certificates will be used to generate client authentication configuration files in the next lab.
+> The `kube-proxy`, `kube-controller-manager`, `kube-scheduler`, and `kubelet`
+> client certificates will be used to generate client authentication
+> configuration files in the next lab.
 
 Next: [Generating Kubernetes Configuration Files for Authentication](05-kubernetes-configuration-files.md)

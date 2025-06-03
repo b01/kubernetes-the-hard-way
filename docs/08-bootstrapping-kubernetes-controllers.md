@@ -1,10 +1,13 @@
 # Bootstrapping the Kubernetes Control Plane
 
-In this lab you will bootstrap the Kubernetes control plane. The following components will be installed on the `controlplane` machine: Kubernetes API Server, Scheduler, and Controller Manager.
+In this lab you will bootstrap the Kubernetes control plane. The following
+components will be installed on the `controlplane` machine: Kubernetes API
+Server, Scheduler, and Controller Manager.
 
 ## Prerequisites
 
-Connect to the `jumpbox` and copy Kubernetes binaries and systemd unit files to the `controlplane` machine:
+Connect to the `jumpbox` and copy Kubernetes binaries and systemd unit files
+to the `controlplane` machine:
 
 ```bash
 scp \
@@ -17,13 +20,14 @@ scp \
   units/kube-scheduler.service \
   configs/kube-scheduler.yaml \
   configs/kube-apiserver-to-kubelet.yaml \
-  root@controlplane:~/
+  vagrant@controlplane:~/
 ```
 
-The commands in this lab must be run on the `controlplane` machine. Login to the `controlplane` machine using the `ssh` command. Example:
+The commands in this lab must be run on the `controlplane` machine. Login to
+the `controlplane` machine using the `ssh` command. Example:
 
 ```bash
-ssh root@controlplane
+ssh vagrant@controlplane
 ```
 
 ## Provision the Kubernetes Control Plane
@@ -31,7 +35,7 @@ ssh root@controlplane
 Create the Kubernetes configuration directory:
 
 ```bash
-mkdir -p /etc/kubernetes/config
+sudo mkdir -p /etc/kubernetes/config
 ```
 
 ### Install the Kubernetes Controller Binaries
@@ -40,7 +44,7 @@ Install the Kubernetes binaries:
 
 ```bash
 {
-  mv kube-apiserver \
+  sudo mv kube-apiserver \
     kube-controller-manager \
     kube-scheduler kubectl \
     /usr/local/bin/
@@ -51,9 +55,9 @@ Install the Kubernetes binaries:
 
 ```bash
 {
-  mkdir -p /var/lib/kubernetes/
+  sudo mkdir -p /var/lib/kubernetes/
 
-  mv ca.crt ca.key \
+  sudo mv ca.crt ca.key \
     kube-apiserver.key kube-apiserver.crt \
     service-accounts.key service-accounts.crt \
     encryption-config.yaml \
@@ -64,7 +68,7 @@ Install the Kubernetes binaries:
 Create the `kube-apiserver.service` systemd unit file:
 
 ```bash
-mv kube-apiserver.service \
+sudo mv kube-apiserver.service \
   /etc/systemd/system/kube-apiserver.service
 ```
 
@@ -73,13 +77,13 @@ mv kube-apiserver.service \
 Move the `kube-controller-manager` kubeconfig into place:
 
 ```bash
-mv kube-controller-manager.kubeconfig /var/lib/kubernetes/
+sudo mv kube-controller-manager.kubeconfig /var/lib/kubernetes/
 ```
 
 Create the `kube-controller-manager.service` systemd unit file:
 
 ```bash
-mv kube-controller-manager.service /etc/systemd/system/
+sudo mv kube-controller-manager.service /etc/systemd/system/
 ```
 
 ### Configure the Kubernetes Scheduler
@@ -87,31 +91,31 @@ mv kube-controller-manager.service /etc/systemd/system/
 Move the `kube-scheduler` kubeconfig into place:
 
 ```bash
-mv kube-scheduler.kubeconfig /var/lib/kubernetes/
+sudo mv kube-scheduler.kubeconfig /var/lib/kubernetes/
 ```
 
 Create the `kube-scheduler.yaml` configuration file:
 
 ```bash
-mv kube-scheduler.yaml /etc/kubernetes/config/
+sudo mv kube-scheduler.yaml /etc/kubernetes/config/
 ```
 
 Create the `kube-scheduler.service` systemd unit file:
 
 ```bash
-mv kube-scheduler.service /etc/systemd/system/
+sudo mv kube-scheduler.service /etc/systemd/system/
 ```
 
 ### Start the Controller Services
 
 ```bash
 {
-  systemctl daemon-reload
+  sudo systemctl daemon-reload
 
-  systemctl enable kube-apiserver \
+  sudo systemctl enable kube-apiserver \
     kube-controller-manager kube-scheduler
 
-  systemctl start kube-apiserver \
+  sudo systemctl start kube-apiserver \
     kube-controller-manager kube-scheduler
 }
 ```
@@ -127,7 +131,10 @@ systemctl is-active kube-apiserver
 For a more detailed status check, which includes additional process information and log messages, use the `systemctl status` command:
 
 ```bash
-systemctl status kube-apiserver
+sudo systemctl status kube-apiserver
+sudo systemctl status kube-controller-manager
+
+sudo systemctl status kube-scheduler
 ```
 
 If you run into any errors, or want to view the logs for any of the control plane components, use the `journalctl` command. For example, to view the logs for the `kube-apiserver` run the following command:

@@ -2,7 +2,7 @@
 
 Kubernetes requires a set of machines to host the Kubernetes control plane and
 the worker nodes where containers are ultimately run. In this lab you will
-provision the machines required for setting up a Kubernetes cluster.
+ready the machines you have provisioned for setting up a Kubernetes cluster.
 
 ## Machine Database
 
@@ -39,81 +39,8 @@ XXX.XXX.XXX.XXX node02.kubernetes.local node02 10.200.1.0/24
 Now it's your turn to create a `machines.txt` file with the details for the
 three machines you will be using to create your Kubernetes cluster. Use the
 example machine database from above and add the details for your machines.
-
-## Enable root Login
-
-Initially the root account will be locked on all machines. You will need to
-manually unlock the root account on each virtual machine.
-
-You'll need to repeat these steps on each machine.
-
-Login to the machine with the `vagrant` user:
-
-`vagrant ssh@jumpbox`
-
-Now set a password for the root account:
-
-```shell
-sudo passwd root
-```
-
-NOTE: You can choose password **vagrant** to keep it the same as the vagrant
-user, and there will be only 1 password to remember.
-
-You'll need to unlock the password of the named account. This option re-enables
-a password by changing the password back to its previous value. In this case
-it should be set to the password we just assigned.
-
-```shell
-sudo passwd -u root
-```
-
-Test that it works by running and entering the password you set:
-
-```shell
-su
-```
-
-## Configuring SSH Access
-
-SSH will be used to configure the machines in the cluster. Verify that you have
-`root` SSH access to each machine listed in your machine database. You may need
-to enable root SSH access on each node by updating the sshd_config file and
-restarting the SSH server.
-
-### Enable root SSH Access
-
-If `root` SSH access is enabled for each of your machines you can skip this
-section.
-
-By default, a new install may disable SSH access for the `root` user. This is
-done for security reasons as the `root` user has total administrative control
-of unix-like systems. If a weak password is used on a machine connected to the
-internet, well, let's just say it's only a matter of time before your machine
-belongs to someone else. As mentioned earlier, we are going to enable `root`
-access over SSH in order to streamline the steps in this tutorial. Security is
-a tradeoff, and in this case, we are optimizing for convenience. Log on to each
-machine via SSH using your user account, then switch to the `root` user using
-the `su` command:
-
-```bash
-su - root
-```
-
-Edit the `/etc/ssh/sshd_config` SSH daemon configuration file and set the
-`PermitRootLogin` option to `yes`:
-
-```bash
-sed -i \
-  's/^#*PermitRootLogin.*/PermitRootLogin yes/' \
-  /etc/ssh/sshd_config
-```
-
-Restart the `sshd` SSH server to pick up the updated configuration file:
-
-```bash
-systemctl restart sshd
-```
+NOTE: Do NOT leave a newline at the end of the file, or you will get an error
+when using it in the for loops.
 
 ### Generate and Distribute SSH Keys
 
@@ -141,7 +68,7 @@ Copy the SSH public key to each machine:
 
 ```bash
 while read IP FQDN HOST SUBNET; do
-  ssh-copy-id root@${IP}
+  ssh-copy-id vagrant@${IP}
 done < machines.txt
 ```
 
@@ -149,7 +76,7 @@ Once each key is added, verify SSH public key access is working:
 
 ```bash
 while read IP FQDN HOST SUBNET; do
-  ssh -n root@${IP} hostname
+  ssh -n vagrant@${IP} hostname
 done < machines.txt
 ```
 
@@ -176,10 +103,10 @@ Set the hostname on each machine listed in the `machines.txt` file:
 
 ```bash
 while read IP FQDN HOST SUBNET; do
-    CMD="sed -i 's/^127.0.1.1.*/127.0.1.1\t${FQDN} ${HOST}/' /etc/hosts"
-    ssh -n root@${IP} "$CMD"
-    ssh -n root@${IP} hostnamectl set-hostname ${HOST}
-    ssh -n root@${IP} systemctl restart systemd-hostnamed
+    CMD="sudo sed -i 's/^127.0.1.1.*/127.0.1.1\t${FQDN} ${HOST}/' /etc/hosts"
+    ssh -n vagrant@${IP} "$CMD"
+    ssh -n vagrant@${IP} sudo hostnamectl set-hostname ${HOST}
+    ssh -n vagrant@${IP} sudo systemctl restart systemd-hostnamed
 done < machines.txt
 ```
 
@@ -187,7 +114,7 @@ Verify the hostname is set on each machine:
 
 ```bash
 while read IP FQDN HOST SUBNET; do
-  ssh -n root@${IP} hostname --fqdn
+  ssh -n vagrant@${IP} hostname --fqdn
 done < machines.txt
 ```
 
@@ -199,7 +126,10 @@ node02.kubernetes.local
 
 ## Host Lookup Table
 
-In this section you will generate a `hosts` file which will be appended to `/etc/hosts` file on the `jumpbox` and to the `/etc/hosts` files on all three cluster members used for this tutorial. This will allow each machine to be reachable using a hostname such as `controlplane`, `node01`, or `node02`.
+In this section you will generate a `hosts` file which will be appended to
+`/etc/hosts` file on the `jumpbox` and to the `/etc/hosts` files on all three
+cluster members used for this tutorial. This will allow each machine to be
+reachable using a hostname such as `controlplane`, `node01`, or `node02`.
 
 Create a new `hosts` file and add a header to identify the machines being added:
 
@@ -240,7 +170,7 @@ local `/etc/hosts` file on your `jumpbox` machine.
 Append the DNS entries from `hosts` to `/etc/hosts`:
 
 ```bash
-cat hosts >> /etc/hosts
+cat hosts | sudo tee -a /etc/hosts
 ```
 
 Verify that the `/etc/hosts` file has been updated:
@@ -269,7 +199,7 @@ At this point you should be able to SSH to each machine listed in the
 
 ```bash
 for host in controlplane node01 node02
-   do ssh root@${host} hostname
+   do ssh vagrant@${host} hostname
 done
 ```
 
@@ -288,9 +218,9 @@ Copy the `hosts` file to each machine and append the contents to `/etc/hosts`:
 
 ```bash
 while read IP FQDN HOST SUBNET; do
-  scp hosts root@${HOST}:~/
+  scp hosts vagrant@${HOST}:~/
   ssh -n \
-    root@${HOST} "cat hosts >> /etc/hosts"
+    vagrant@${HOST} "cat hosts | sudo tee -a /etc/hosts"
 done < machines.txt
 ```
 
