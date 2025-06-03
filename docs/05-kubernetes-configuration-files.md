@@ -1,6 +1,6 @@
 # Generating Kubernetes Configuration Files for Authentication
 
-In this lab you will generate [Kubernetes client configuration files](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/),
+In this lab you will generate [Kubernetes client configuration files],
 typically called kubeconfigs, which configure Kubernetes clients to connect
 and authenticate to Kubernetes API Servers.
 
@@ -13,11 +13,10 @@ In this section you will generate kubeconfig files for the `kubelet` and the
 
 When generating kubeconfig files for Kubelets the client certificate matching
 the Kubelet's node name must be used. This will ensure Kubelets are properly
-authorized by the Kubernetes [Node Authorizer](https://kubernetes.io/docs/reference/access-authn-authz/node/).
+authorized by the Kubernetes [Node Authorizer].
 
 > The following commands must be run in the same directory used to generate
-> the SSL certificates during the
-> [Generating TLS Certificates](04-certificate-authority.md) lab.
+> the SSL certificates during the [Generating TLS Certificates] lab.
 
 Generate a kubeconfig file for the `node01` and `node02` worker nodes:
 
@@ -191,27 +190,35 @@ admin.kubeconfig
 
 ## Distribute the Kubernetes Configuration Files
 
-Copy the `kubelet` and `kube-proxy` kubeconfig files to the `node01` and `node02` machines:
+Copy the `kubelet` and `kube-proxy` kubeconfig files to the `node01` and
+`node02` machines:
 
 ```bash
 for host in node01 node02; do
-  ssh root@${host} "mkdir -p /var/lib/{kube-proxy,kubelet}"
+  ssh vagrant@${host} "sudo mkdir -p /var/lib/{kube-proxy,kubelet}"
 
-  scp kube-proxy.kubeconfig \
-    root@${host}:/var/lib/kube-proxy/kubeconfig
+  scp kube-proxy.kubeconfig vagrant@${host}:~/
+  ssh vagrant@${host} "sudo mv kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig"
 
-  scp ${host}.kubeconfig \
-    root@${host}:/var/lib/kubelet/kubeconfig
+  scp ${host}.kubeconfig vagrant@${host}:~/
+  ssh vagrant@${host} "sudo mv ${host}.kubeconfig /var/lib/kubelet/kubeconfig"
 done
 ```
 
-Copy the `kube-controller-manager` and `kube-scheduler` kubeconfig files to the `controlplane` machine:
+Copy the `kube-controller-manager` and `kube-scheduler` kubeconfig files to
+the `controlplane` machine:
 
 ```bash
 scp admin.kubeconfig \
   kube-controller-manager.kubeconfig \
   kube-scheduler.kubeconfig \
-  root@controlplane:~/
+  vagrant@controlplane:~/
 ```
 
 Next: [Generating the Data Encryption Config and Key](06-data-encryption-keys.md)
+
+---
+
+[Kubernetes client configuration files]: https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
+[Node Authorizer]: https://kubernetes.io/docs/reference/access-authn-authz/node/
+[Generating TLS Certificates]: 04-certificate-authority.md

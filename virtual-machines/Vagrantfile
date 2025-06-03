@@ -11,6 +11,7 @@
 #            need to know so much networking setup. Also no jumpbox is included.
 INSTALL_MODE = "MANUAL"
 
+BOX_IMG = "ubuntu/jammy64"
 BOOT_TIMEOUT_SEC = 120
 
 # Set the build mode
@@ -27,7 +28,11 @@ NUM_WORKER_NODES = 2
 
 # Network parameters for NAT mode
 NAT_IP_PREFIX = "192.168.56"
-JUMPER_IP_START = 10
+
+JUMPER_NAME = "jumpbox"
+JUMPER_NAT_START_IP = 10
+
+CONTROLPLANE_NAME = "controlplane"
 CONTROLPLANE_NAT_IP = 11
 NODE_IP_START = 20
 
@@ -79,7 +84,7 @@ end
 
 # Helper method to determine whether all nodes are up
 def all_nodes_up()
-  if get_machine_id("controlplane").nil?
+  if get_machine_id(CONTROLPLANE_NAME).nil?
     return false
   end
 
@@ -89,7 +94,7 @@ def all_nodes_up()
     end
   end
 
-  if get_machine_id("jumpbox").nil?
+  if get_machine_id(JUMPER_NAME).nil?
     return false
   end
 
@@ -108,7 +113,7 @@ def setup_dns(node)
   node.vm.provision "setup-dns", type: "shell", :path => "ubuntu/update-dns.sh"
 end
 
-# Runs provisioning steps that are required by masters and workers
+# Runs provisioning steps that are required by controlplanes and workers
 def provision_kubernetes_node(node)
   # Set up DNS
   setup_dns node
@@ -129,7 +134,7 @@ Vagrant.configure("2") do |config|
   # boxes at https://portal.cloud.hashicorp.com/vagrant/discover
   # config.vm.box = "base"
 
-  config.vm.box = "ubuntu/jammy64"
+  config.vm.box = BOX_IMG
   config.vm.boot_timeout = BOOT_TIMEOUT_SEC
 
   # Set SSH login user and password
@@ -142,20 +147,20 @@ Vagrant.configure("2") do |config|
   config.vm.box_check_update = false
 
   # Provision controlplane Nodes
-  config.vm.define "controlplane" do |node|
+  config.vm.define CONTROLPLANE_NAME do |node|
     # Name shown in the GUI
     node.vm.provider "virtualbox" do |vb|
-      vb.name = "controlplane"
+      vb.name = CONTROLPLANE_NAME
       vb.memory = 2048
       vb.cpus = 2
     end
-    node.vm.hostname = "controlplane"
+    node.vm.hostname = CONTROLPLANE_NAME
     if BUILD_MODE == "BRIDGE"
       adapter = ""
       node.vm.network :public_network, bridge: get_bridge_adapter()
     else
       node.vm.network :private_network, ip: NAT_IP_PREFIX + ".#{CONTROLPLANE_NAT_IP}"
-      node.vm.network "forwarded_port", guest: 22, host: "#{2710}"
+      #node.vm.network "forwarded_port", guest: 22, host: "#{2710}"
     end
     provision_kubernetes_node node
     # Install (opinionated) configs for vim and tmux on master-1. These used by the author for CKA exam.
@@ -176,7 +181,7 @@ Vagrant.configure("2") do |config|
         node.vm.network :public_network, bridge: get_bridge_adapter()
       else
         node.vm.network :private_network, ip: NAT_IP_PREFIX + ".#{NODE_IP_START + i}"
-        node.vm.network "forwarded_port", guest: 22, host: "#{2720 + i}"
+        #node.vm.network "forwarded_port", guest: 22, host: "#{2720 + i}"
       end
       provision_kubernetes_node node
     end
@@ -184,20 +189,20 @@ Vagrant.configure("2") do |config|
 
   if INSTALL_MODE == "MANUAL"
     # Provision a JumpBox
-    config.vm.define "jumpbox" do |node|
+    config.vm.define JUMPER_NAME do |node|
       # Name shown in the GUI
       node.vm.provider "virtualbox" do |vb|
-        vb.name = "jumpbox"
+        vb.name = JUMPER_NAME
         vb.memory = 512
         vb.cpus = 1
       end
-      node.vm.hostname = "jumpbox"
+      node.vm.hostname = JUMPER_NAME
       if BUILD_MODE == "BRIDGE"
         adapter = ""
         node.vm.network :public_network, bridge: get_bridge_adapter()
       else
-        node.vm.network :private_network, ip: NAT_IP_PREFIX + ".#{JUMPER_IP_START}"
-        node.vm.network "forwarded_port", guest: 22, host: "#{2730}"
+        node.vm.network :private_network, ip: NAT_IP_PREFIX + ".#{JUMPER_NAT_START_IP}"
+        #node.vm.network "forwarded_port", guest: 22, host: "#{2730}"
       end
       provision_kubernetes_node node
     end
@@ -214,7 +219,7 @@ Vagrant.configure("2") do |config|
       trigger.ruby do |env, machine|
         if all_nodes_up()
           puts "    Gathering IP addresses of nodes..."
-          nodes = ["controlplane"]
+          nodes = [CONTROLPLANE_NAME]
           ips = []
           (1..NUM_WORKER_NODES).each do |i|
             nodes.push("node0#{i}")

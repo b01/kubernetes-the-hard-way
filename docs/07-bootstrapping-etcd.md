@@ -12,14 +12,14 @@ scp \
   downloads/controller/etcd \
   downloads/client/etcdctl \
   units/etcd.service \
-  root@controlplane:~/
+  vagrant@controlplane:~/
 ```
 
 The commands in this lab must be run on the `controlplane` machine. Login to
 the `controlplane` machine using the `ssh` command. Example:
 
 ```bash
-ssh root@controlplane
+ssh vagrant@controlplane
 ```
 
 ## Bootstrapping an etcd Cluster
@@ -30,7 +30,7 @@ Extract and install the `etcd` server and the `etcdctl` command line utility:
 
 ```bash
 {
-  mv etcd etcdctl /usr/local/bin/
+  sudo mv etcd etcdctl /usr/local/bin/
 }
 ```
 
@@ -38,9 +38,9 @@ Extract and install the `etcd` server and the `etcdctl` command line utility:
 
 ```bash
 {
-  mkdir -p /etc/etcd /var/lib/etcd
-  chmod 700 /var/lib/etcd
-  cp ca.crt kube-apiserver.key kube-apiserver.crt \
+  sudo mkdir -p /etc/etcd /var/lib/etcd
+  sudo chmod 700 /var/lib/etcd
+  sudo cp ca.crt kube-apiserver.key kube-apiserver.crt \
     /etc/etcd/
 }
 ```
@@ -51,16 +51,16 @@ name to match the hostname of the current compute instance:
 Create the `etcd.service` systemd unit file:
 
 ```bash
-mv etcd.service /etc/systemd/system/
+sudo mv etcd.service /etc/systemd/system/
 ```
 
 ### Start the etcd Server
 
 ```bash
 {
-  systemctl daemon-reload
-  systemctl enable etcd
-  systemctl start etcd
+  sudo systemctl daemon-reload
+  sudo systemctl enable etcd
+  sudo systemctl start etcd.service
 }
 ```
 
