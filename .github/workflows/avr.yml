@@ -14,7 +14,7 @@ run-name: ${{ github.actor }}'s close of PR ${{ github.ref_name }} has started t
 
 jobs:
   wf-selector:
-    uses: kohirens/version-release/.github/workflows/selector.yml@5.1.1
+    uses: kohirens/version-release/.github/workflows/selector.yml@e327d431f54e299bdcefcec1febc08eb71be02ff
     name: workflow-selector
     secrets:
       github_write_token: ${{ secrets.GH_WRITE_TOKEN }}
