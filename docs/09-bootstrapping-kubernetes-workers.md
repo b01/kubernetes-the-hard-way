@@ -152,8 +152,14 @@ Install the configuration files:
   sudo mv kubelet-config.yaml /var/lib/kubelet/
   sudo mv kube-proxy-config.yaml /var/lib/kube-proxy/
 
-  sudo mv containerd.service kubelet.service kube-proxy.service \
+  sudo mv \
+    containerd.service \
+    kubelet.service \
+    kube-proxy.service \
     /etc/systemd/system/
+
+  # to save key-strokes you can also run
+  # sudo mv *.service /etc/systemd/system
 }
 ```
 
