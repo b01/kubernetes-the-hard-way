@@ -23,7 +23,7 @@ In this section you will verify the ability to [encrypt secret data at rest].
 Create a generic secret:
 
 ```bash
-kubectl create secret generic kubernetes-the-hard-way \
+k create secret generic kubernetes-the-hard-way \
   --from-literal="mykey=mydata"
 ```
 
