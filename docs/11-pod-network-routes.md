@@ -18,29 +18,39 @@ Print the internal IP address and Pod CIDR range for each worker instance:
 
 ```bash
 {
-  NODE_0_IP=$(grep node01 machines.txt | cut -d " " -f 1)
-  NODE_0_SUBNET=$(grep node01 machines.txt | cut -d " " -f 4)
-  NODE_1_IP=$(grep node02 machines.txt | cut -d " " -f 1)
-  NODE_1_SUBNET=$(grep node02 machines.txt | cut -d " " -f 4)
+  CTLP_1_IP=$(grep controlplane machines.txt | cut -d " " -f 1)
+  CTLP_1_SUBNET=$(grep controlplane machines.txt | cut -d " " -f 4)
+  NODE_1_IP=$(grep node01 machines.txt | cut -d " " -f 1)
+  NODE_1_SUBNET=$(grep node01 machines.txt | cut -d " " -f 4)
+  NODE_2_IP=$(grep node02 machines.txt | cut -d " " -f 1)
+  NODE_2_SUBNET=$(grep node02 machines.txt | cut -d " " -f 4)
 }
 ```
 
+Add routes to the controlplane:
+
 ```bash
 ssh vagrant@controlplane <<EOF
-  sudo ip route add ${NODE_0_SUBNET} via ${NODE_0_IP}
   sudo ip route add ${NODE_1_SUBNET} via ${NODE_1_IP}
+  sudo ip route add ${NODE_2_SUBNET} via ${NODE_2_IP}
 EOF
 ```
+
+Add routes to the node01 worker:
 
 ```bash
 ssh vagrant@node01 <<EOF
-  sudo ip route add ${NODE_1_SUBNET} via ${NODE_1_IP}
+  sudo ip route add ${CTLP_1_SUBNET} via ${CTLP_1_IP}
+  sudo ip route add ${NODE_2_SUBNET} via ${NODE_2_IP}
 EOF
 ```
 
+Add routes to the node02 worker:
+
 ```bash
 ssh vagrant@node02 <<EOF
-  sudo ip route add ${NODE_0_SUBNET} via ${NODE_0_IP}
+  sudo ip route add ${CTLP_1_SUBNET} via ${CTLP_1_IP}
+  sudo ip route add ${NODE_1_SUBNET} via ${NODE_1_IP}
 EOF
 ```
 

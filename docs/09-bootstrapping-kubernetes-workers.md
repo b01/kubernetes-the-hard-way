@@ -202,7 +202,7 @@ and `node02`, before moving on to the next section.
 
 ## Verification
 
-Run the following commands from the `jumpbox` machine.
+Run the following commands from any machine.
 
 List the registered Kubernetes nodes:
 

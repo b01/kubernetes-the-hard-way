@@ -21,7 +21,7 @@ authorized by the Kubernetes [Node Authorizer].
 Generate a kubeconfig file for the `node01` and `node02` worker nodes:
 
 ```bash
-for host in node01 node02; do
+for host in controlplane node01 node02; do
   kubectl config set-cluster kubernetes-the-hard-way \
     --certificate-authority=ca.crt \
     --embed-certs=true \

@@ -35,6 +35,7 @@ Generate the CA configuration file, certificate, and private key:
 ```bash
 {
   openssl genrsa -out ca.key 4096
+
   openssl req -x509 -new -sha512 -noenc \
     -key ca.key -days 3653 \
     -config ca.conf \
@@ -57,7 +58,7 @@ Generate the certificates and private keys:
 
 ```bash
 certs=(
-  "admin" "node01" "node02"
+  "admin" "controlplane" "node01" "node02"
   "kube-proxy" "kube-scheduler"
   "kube-controller-manager"
   "kube-apiserver"
@@ -102,7 +103,7 @@ Copy the appropriate certificates and private keys to the `node01` and `node02`
 machines:
 
 ```bash
-for host in node01 node02; do
+for host in controlplane node01 node02; do
   ssh vagrant@${host} sudo mkdir -p /var/lib/kubelet/
 
   scp ca.crt vagrant@${host}:~/
