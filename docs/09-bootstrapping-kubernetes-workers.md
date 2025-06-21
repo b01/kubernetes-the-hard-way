@@ -135,10 +135,10 @@ sysctl settings from the file specified.
 
 ```bash
 {
-  echo "net.bridge.bridge-nf-call-iptables = 1" | sudo tee -a /etc/sysctl.d/kubernetes.conf
-  echo "net.bridge.bridge-nf-call-ip6tables = 1" | sudo tee -a /etc/sysctl.d/kubernetes.conf
+  echo "net.bridge.bridge-nf-call-iptables = 1" | sudo tee -a /etc/sysctl.d/k8s.conf
+  echo "net.bridge.bridge-nf-call-ip6tables = 1" | sudo tee -a /etc/sysctl.d/k8s.conf
   # Load in sysctl settings from the file specified
-  sudo sysctl -p /etc/sysctl.d/kubernetes.conf
+  sudo sysctl -p /etc/sysctl.d/k8s.conf
 }
 ```
 
@@ -149,7 +149,7 @@ Install the configuration files:
 ```bash
 {
   sudo mv containerd-config.toml /etc/containerd/config.toml
-  sudo mv kubelet-config.yaml /var/lib/kubelet/
+  sudo mv kubelet-config.yaml /var/lib/kubelet/config.yaml
   sudo mv kube-proxy-config.yaml /var/lib/kube-proxy/
 
   sudo mv \
